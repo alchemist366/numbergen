@@ -9,6 +9,13 @@ public class StringUtils {
         return Objects.isNull(str) || str.trim().length() == 0;
     }
 
+    /**
+     * makes next word by lexicographic order in modal field (next word has same number of letters as initial)
+     * letters order is important to define next letter
+     * @param word initial word
+     * @param letters letters to use in word
+     * @return next word
+     */
     public static String nextWordModal(String word, String letters) {
         if (isNullOrEmpty(word) || isNullOrEmpty(letters)) return word;
 
@@ -29,6 +36,10 @@ public class StringUtils {
                 : letters.charAt(i + 1);
     }
 
+    /**
+     * @param str
+     * @return same string with sorted and distinct letters
+     */
     public static String sortDistinctChars(String str) {
         if (isNullOrEmpty(str)) return str;
         return CharBuffer.wrap(str)

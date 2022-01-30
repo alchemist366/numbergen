@@ -1,7 +1,6 @@
 package com.aisalin.numbergen.models;
 
 import lombok.*;
-import org.hibernate.CacheMode;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
