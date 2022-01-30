@@ -13,7 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class CarNumber {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "number_part")
@@ -22,11 +22,21 @@ public class CarNumber {
     @Column(name = "letter_part")
     private String letterPart;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_id")
     private Region region;
 
     public String getConstPart() {
-        return  "116 RUS";
+        return  region.getCode() + " RUS";
+    }
+
+    @Override
+    public String toString() {
+        return "CarNumber{" +
+                "id=" + id +
+                ", numberPart=" + numberPart +
+                ", letterPart='" + letterPart + '\'' +
+                ", region=" + region +
+                '}';
     }
 }

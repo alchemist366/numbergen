@@ -18,6 +18,13 @@ public class NumberController {
         this.carNumberConverter = carNumberConverter;
     }
 
+    @GetMapping("/number/save")
+    public String saveCurrent() {
+        carNumberService.saveCurrent();
+        return String.format("Номер %s успешно сохранён!",
+                carNumberConverter.convert(carNumberService.getCurrentNumber()));
+    }
+
     @GetMapping("/number/random")
     public String random() {
         return carNumberConverter.convert(carNumberService.random());

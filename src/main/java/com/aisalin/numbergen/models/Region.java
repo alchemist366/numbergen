@@ -1,6 +1,8 @@
 package com.aisalin.numbergen.models;
 
 import lombok.*;
+import org.hibernate.CacheMode;
+import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
 
@@ -11,9 +13,10 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Immutable
 public class Region {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
