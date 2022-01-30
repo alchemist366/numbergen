@@ -1,9 +1,6 @@
 package com.aisalin.numbergen.models;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -12,6 +9,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class CarNumber {
     @Id
@@ -27,4 +25,8 @@ public class CarNumber {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "region_id")
     private Region region;
+
+    public String getConstPart() {
+        return  "116 RUS";
+    }
 }
