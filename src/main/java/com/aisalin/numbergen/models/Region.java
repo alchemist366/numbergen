@@ -14,13 +14,11 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Immutable
 public class Region {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @Column
     private String name;
 
+    @Id
     @Column
     private Integer code;
 }

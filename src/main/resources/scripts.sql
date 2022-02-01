@@ -21,3 +21,7 @@ create table car_numbers
 
 insert into regions (name, code)
 values ('Татарстан', 116);
+
+alter table car_numbers
+    add constraint car_numbers_regions_code_fk
+        foreign key (region_code) references regions (code);
