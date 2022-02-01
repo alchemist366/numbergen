@@ -1,16 +1,16 @@
 package com.aisalin.numbergen;
 
-import com.aisalin.numbergen.utils.RandomUtils;
-import com.aisalin.numbergen.utils.StringUtils;
+import com.aisalin.numbergen.utils.ProjStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 
-import static com.aisalin.numbergen.utils.StringUtils.nextWordModal;
+import static com.aisalin.numbergen.utils.ProjStringUtils.nextWordModal;
 
 
 public class UtilsTest {
 
-    private static final String LETTERS = StringUtils.sortDistinctChars("АЕТОРНУКХСЯВМ");
+    private static final String LETTERS = ProjStringUtils.sortDistinctChars("АЕТОРНУКХСЯВМ").orElse("");
 
 
     @Test
@@ -29,7 +29,7 @@ public class UtilsTest {
     @Test
     public void randomTest() {
         int length = 3;
-        String w = RandomUtils.randomWord(length, LETTERS);
+        String w = RandomStringUtils.random(3, LETTERS);
         Assert.notNull(w, "word is null");
         Assert.isTrue(!w.isEmpty(), "word is empty");
         Assert.isTrue(w.length() == length, String.format("diff length = %s", w.length()));

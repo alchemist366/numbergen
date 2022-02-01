@@ -4,7 +4,8 @@ import com.aisalin.numbergen.components.NumberStorage;
 import com.aisalin.numbergen.models.CarNumber;
 import com.aisalin.numbergen.repositories.CarNumberRepository;
 import com.aisalin.numbergen.utils.RandomUtils;
-import com.aisalin.numbergen.utils.StringUtils;
+import com.aisalin.numbergen.utils.ProjStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class CarNumberService {
     public CarNumberService(CarNumberRepository carNumberRepository, NumberStorage numberStorage, RegionService regionService) {
         this.repository = carNumberRepository;
         this.numberStorage = numberStorage;
-        this.availableLetters = StringUtils.sortDistinctChars("АЕТОРНУКХСВМ");
+        this.availableLetters = ProjStringUtils.sortDistinctChars("АЕТОРНУКХСВМ").orElse("");
         this.regionService = regionService;
     }
 
@@ -68,7 +69,7 @@ public class CarNumberService {
     public CarNumber next(CarNumber carNumber) {
         int nextNumberPart = (carNumber.getNumberPart() + 1) % 1000;
         CarNumber nextNumber = create(nextNumberPart, nextNumberPart == 0
-                ? StringUtils.nextWordModal(carNumber.getLetterPart(), availableLetters)
+                ? ProjStringUtils.nextWordModal(carNumber.getLetterPart(), availableLetters)
                 : carNumber.getLetterPart());
         numberStorage.setCarNumber(nextNumber);
         return nextNumber;
@@ -79,7 +80,7 @@ public class CarNumberService {
      * @return generated car number
      */
     public CarNumber random() {
-        CarNumber randNumber = create(RandomUtils.randomIntInclude(0, 999), RandomUtils.randomWord(3, availableLetters));
+        CarNumber randNumber = create(RandomUtils.randomIntInclude(0, 999), RandomStringUtils.random(3, availableLetters));
         numberStorage.setCarNumber(randNumber);
         return randNumber;
     }

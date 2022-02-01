@@ -1,13 +1,13 @@
 package com.aisalin.numbergen.utils;
 
 import java.nio.CharBuffer;
-import java.util.Objects;
+import java.util.Optional;
 
-public class StringUtils {
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-    public static boolean isNullOrEmpty(String str) {
-        return Objects.isNull(str) || str.trim().length() == 0;
-    }
+public class ProjStringUtils {
+
+    private ProjStringUtils(){}
 
     /**
      * makes next word by lexicographic order in modal field (next word has same number of letters as initial)
@@ -17,7 +17,7 @@ public class StringUtils {
      * @return next word
      */
     public static String nextWordModal(String word, String letters) {
-        if (isNullOrEmpty(word) || isNullOrEmpty(letters)) return word;
+        if (isEmpty(word) || isEmpty(letters)) return word;
 
         if (word.length() == 1) {
             return String.valueOf(nextLetter(word.charAt(0), letters));
@@ -40,16 +40,16 @@ public class StringUtils {
      * @param str
      * @return same string with sorted and distinct letters
      */
-    public static String sortDistinctChars(String str) {
-        if (isNullOrEmpty(str)) return str;
-        return CharBuffer.wrap(str)
+    public static Optional<String> sortDistinctChars(String str) {
+        if (isEmpty(str)) return Optional.ofNullable(str);
+        return Optional.of(CharBuffer.wrap(str)
                 .chars()
                 .sorted()
                 .distinct()
                 .collect(StringBuilder::new,
                         StringBuilder::appendCodePoint,
                         StringBuilder::append)
-                .toString();
+                .toString());
     }
 
 }
