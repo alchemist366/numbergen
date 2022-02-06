@@ -45,10 +45,8 @@ public class CarNumberService {
      * @return next car number in system
      */
     public CarNumber next(Region region) throws NumbersIsOverException {
-        log.debug("next(region), region = {} ", region.getName());
         Optional<CarNumber> lastCreatedCarNumber = findLastCreatedCarNumber(region);
         if (lastCreatedCarNumber.isPresent()) {
-            log.debug("last created car number = {}, letterPart = {}", lastCreatedCarNumber.get().getNumberPart(), lastCreatedCarNumber.get().getLetterPart());
             return next(lastCreatedCarNumber.get());
         } else {
             return create(region);
@@ -74,15 +72,13 @@ public class CarNumberService {
                 letterPart = ProjStringUtils.nextWordModal(carNumber.getLetterPart(), availableLetters);
                 byLetterPart = findByLetterPart(carNumber.getRegion(), carNumber.getLetterPart());
             }
-            log.debug("next number part = {}", numberPart);
         } while (!isFreeNumberPart(byLetterPart, numberPart));
         return create(numberPart, letterPart, carNumber.getRegion());
     }
 
-    private boolean isAllNumbersInRegionWhereUsed(Region region) {
+    public boolean isAllNumbersInRegionWhereUsed(Region region) {
         List<CarNumber> carNumbers = repository.findAllByRegion(region);
         double maxNumberCount = Math.pow(availableLetters.length(), 3) * 1000;
-        log.debug("max number count = {}", maxNumberCount);
         return carNumbers.size() == maxNumberCount;
     }
 
@@ -107,7 +103,6 @@ public class CarNumberService {
         int randNumberPart;
         do {
             randNumberPart = RandomUtils.randomIntInclude(0, 999);
-            log.debug("next rand number part = {}", randNumberPart);
         } while (!isFreeNumberPart(byLetterPart, randNumberPart));
 
         return create(randNumberPart, letterPart, region);
