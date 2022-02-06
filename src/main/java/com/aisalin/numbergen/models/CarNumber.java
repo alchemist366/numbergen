@@ -3,6 +3,7 @@ package com.aisalin.numbergen.models;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Table(name = "car_numbers")
 @Entity
@@ -23,8 +24,11 @@ public class CarNumber {
     private String letterPart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "region_id")
+    @JoinColumn(name = "region_code")
     private Region region;
+
+    @Column(name = "created")
+    private LocalDateTime created;
 
     public String getConstPart() {
         return  region.getCode() + " RUS";
@@ -37,6 +41,7 @@ public class CarNumber {
                 ", numberPart=" + numberPart +
                 ", letterPart='" + letterPart + '\'' +
                 ", region=" + region +
+                ", created=" + created +
                 '}';
     }
 }

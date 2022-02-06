@@ -1,109 +1,162 @@
 package com.aisalin.numbergen.services;
 
-import com.aisalin.numbergen.components.NumberStorage;
+import com.aisalin.numbergen.exceptions.NumbersIsOverException;
 import com.aisalin.numbergen.models.CarNumber;
+import com.aisalin.numbergen.models.Region;
 import com.aisalin.numbergen.repositories.CarNumberRepository;
 import com.aisalin.numbergen.utils.RandomUtils;
 import com.aisalin.numbergen.utils.ProjStringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 @Service
+@Slf4j
 public class CarNumberService {
 
     private final CarNumberRepository repository;
-    private final NumberStorage numberStorage;
     private final String availableLetters;
-    private final RegionService regionService;
-
-    private static final int TAT_REGION_CODE = 116;
 
     @Autowired
-    public CarNumberService(CarNumberRepository carNumberRepository, NumberStorage numberStorage, RegionService regionService) {
+    public CarNumberService(CarNumberRepository carNumberRepository) {
         this.repository = carNumberRepository;
-        this.numberStorage = numberStorage;
         this.availableLetters = ProjStringUtils.sortDistinctChars("АЕТОРНУКХСВМ").orElse("");
-        this.regionService = regionService;
-    }
-
-    /**
-     * save car number from storage
-     */
-    public void saveCurrent() {
-        save(getCurrentNumber());
     }
 
     public void save(CarNumber carNumber) {
         repository.save(carNumber);
     }
 
-    /**
-     * @return car number from storage or last from database or default
-     */
-    public CarNumber getCurrentNumber() {
-        CarNumber carNumber = numberStorage.getCarNumber();
-        if (Objects.isNull(carNumber)) {
-            carNumber = repository.findTopByOrderByIdDesc();
-        }
-        if (Objects.isNull(carNumber)) {
-            carNumber = create();
-        }
-        return carNumber;
+    public Optional<CarNumber> findLastCreatedCarNumber(Region region) {
+        return Optional.ofNullable(repository.findFirstByRegionOrderByCreatedDesc(region));
     }
 
     /**
      * @return next car number in system
      */
-    public CarNumber next() {
-        CarNumber currentCarNumber = getCurrentNumber();
-        return next(currentCarNumber);
+    public CarNumber next(Region region) throws NumbersIsOverException {
+        log.debug("next(region), region = {} ", region.getName());
+        Optional<CarNumber> lastCreatedCarNumber = findLastCreatedCarNumber(region);
+        if (lastCreatedCarNumber.isPresent()) {
+            log.debug("last created car number = {}, letterPart = {}", lastCreatedCarNumber.get().getNumberPart(), lastCreatedCarNumber.get().getLetterPart());
+            return next(lastCreatedCarNumber.get());
+        } else {
+            return create(region);
+        }
     }
 
     /**
+     *
      * @param carNumber
-     * @return next cur number after specified in param
+     * @return next cur number after specified in param that wasn't before
+     * @throws NumbersIsOverException when all numbers in region where used
      */
-    public CarNumber next(CarNumber carNumber) {
-        int nextNumberPart = (carNumber.getNumberPart() + 1) % 1000;
-        CarNumber nextNumber = create(nextNumberPart, nextNumberPart == 0
-                ? ProjStringUtils.nextWordModal(carNumber.getLetterPart(), availableLetters)
-                : carNumber.getLetterPart());
-        numberStorage.setCarNumber(nextNumber);
-        return nextNumber;
+    public CarNumber next(CarNumber carNumber) throws NumbersIsOverException {
+        if (isAllNumbersInRegionWhereUsed(carNumber.getRegion())) {
+            throw new NumbersIsOverException("not exists next number that wasn't before");
+        }
+        int numberPart = carNumber.getNumberPart();
+        String letterPart = carNumber.getLetterPart();
+        List<CarNumber> byLetterPart = findByLetterPart(carNumber.getRegion(), carNumber.getLetterPart());
+        do {
+            numberPart = (numberPart + 1) % 1000;
+            if (numberPart == 0) {
+                letterPart = ProjStringUtils.nextWordModal(carNumber.getLetterPart(), availableLetters);
+                byLetterPart = findByLetterPart(carNumber.getRegion(), carNumber.getLetterPart());
+            }
+            log.debug("next number part = {}", numberPart);
+        } while (!isFreeNumberPart(byLetterPart, numberPart));
+        return create(numberPart, letterPart, carNumber.getRegion());
+    }
+
+    private boolean isAllNumbersInRegionWhereUsed(Region region) {
+        List<CarNumber> carNumbers = repository.findAllByRegion(region);
+        double maxNumberCount = Math.pow(availableLetters.length(), 3) * 1000;
+        log.debug("max number count = {}", maxNumberCount);
+        return carNumbers.size() == maxNumberCount;
     }
 
     /**
      * generate car number with 3 digits integer main part, 3 chars letter part and Tat region
+     * generated number is unique by that 3 params
      * @return generated car number
      */
-    public CarNumber random() {
-        CarNumber randNumber = create(RandomUtils.randomIntInclude(0, 999), RandomStringUtils.random(3, availableLetters));
-        numberStorage.setCarNumber(randNumber);
-        return randNumber;
+    public CarNumber random(Region region) throws NumbersIsOverException {
+        String letterPart;
+        List<CarNumber> byLetterPart;
+
+        if (isAllNumbersInRegionWhereUsed(region)) {
+            throw new NumbersIsOverException("not exists next number that wasn't before");
+        }
+
+        do {
+            letterPart = RandomStringUtils.random(3, availableLetters);
+            byLetterPart = findByLetterPart(region, letterPart);
+        } while (!isFreeLetterPart(byLetterPart, 3));
+
+        int randNumberPart;
+        do {
+            randNumberPart = RandomUtils.randomIntInclude(0, 999);
+            log.debug("next rand number part = {}", randNumberPart);
+        } while (!isFreeNumberPart(byLetterPart, randNumberPart));
+
+        return create(randNumberPart, letterPart, region);
+    }
+
+    private boolean isFreeNumberPart(List<CarNumber> byLetterPart, int numberPart) {
+        if (CollectionUtils.isEmpty(byLetterPart)) return true;
+        return byLetterPart.stream()
+                .map(CarNumber::getNumberPart)
+                .noneMatch(Predicate.isEqual(numberPart));
     }
 
     /**
      * create default car number А000АА 116 RUS
      * @return created car number
      */
-    public CarNumber create() {
-        return create(0, "ААА");
+    public CarNumber create(Region region) {
+        return create(0, "ААА", region);
     }
 
     /**
      * create car number by params. A111AA XXX RUS. X - region code
      * @param numberPart as 1 in description
      * @param letterPart as A in description
+     * @param region number region
      * @return created car number
      */
-    public CarNumber create(int numberPart, String letterPart) {
+    public CarNumber create(int numberPart, String letterPart, Region region) {
         return CarNumber.builder()
                 .letterPart(letterPart)
                 .numberPart(numberPart)
-                .region(regionService.findByCode(TAT_REGION_CODE))
+                .region(region)
+                .created(LocalDateTime.now())
                 .build();
+    }
+
+    /**
+     * detect if letter part is not fulfilled in database
+     * @param listByLetterPart list of car numbers extracted by letter part
+     * @param numPartPlaces count of numeric digits in number
+     * @return is free or not
+     */
+    public boolean isFreeLetterPart(List<CarNumber> listByLetterPart, int numPartPlaces) {
+        if (CollectionUtils.isEmpty(listByLetterPart)) return true;
+        return listByLetterPart.size() == Math.pow(10, numPartPlaces);
+    }
+
+    public List<CarNumber> findByLetterPart(Region region, String letterPart) {
+        if (StringUtils.isEmpty(letterPart) || Objects.isNull(region)) return new ArrayList<>();
+        return repository.findByLetterPartAndRegionOrderByLetterPartAsc(letterPart, region);
     }
 }
