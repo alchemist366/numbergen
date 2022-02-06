@@ -30,6 +30,7 @@ public class ProjStringUtils {
     }
 
     public static char nextLetter( char prev, String letters) {
+        if (!letters.contains(String.valueOf(prev))) throw new IllegalArgumentException();
         int i = letters.indexOf(prev);
         return  i == letters.length() - 1
                 ? letters.charAt(0)
