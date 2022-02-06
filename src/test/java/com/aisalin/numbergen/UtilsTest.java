@@ -5,7 +5,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 
+import java.util.Objects;
+
 import static com.aisalin.numbergen.utils.ProjStringUtils.nextWordModal;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 public class UtilsTest {
@@ -24,16 +27,34 @@ public class UtilsTest {
         word = nextWordModal("ЯЯЯ", LETTERS);
         test = "ААА";
         Assert.isTrue(word.equals(test), String.format("Strings %s and %s not equals", word, test));
+        Assert.isTrue(Objects.equals(nextWordModal(word, ""), word), "fails whe no alphabet provided");
+
     }
 
     @Test
-    public void randomTest() {
-        int length = 3;
-        String w = RandomStringUtils.random(3, LETTERS);
-        Assert.notNull(w, "word is null");
-        Assert.isTrue(!w.isEmpty(), "word is empty");
-        Assert.isTrue(w.length() == length, String.format("diff length = %s", w.length()));
-        w.chars()
-                .forEach(c -> Assert.isTrue(LETTERS.indexOf(c) != -1, String.format("unknown letter %s", c)));
+    public void nextWordTestWordForEmpty() {
+        Assert.isTrue(Objects.equals(nextWordModal("", LETTERS), ""), "not empty returned val");
+        Assert.isTrue(Objects.equals(nextWordModal(null, LETTERS), null), "not null returned val");
+    }
+
+    @Test
+    public void nextWordTestWordHasLetterOutDictionary() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            nextWordModal("ААБЯ", LETTERS);
+        });
+
+        String expectedMessage = "wrong letter";
+        String actualMessage = exception.getMessage();
+
+        Assert.isTrue(actualMessage.contains(expectedMessage), "exception hasn't been thrown");
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            nextWordModal("-", LETTERS);
+        });
+
+        expectedMessage = "wrong letter";
+        actualMessage = exception.getMessage();
+
+        Assert.isTrue(actualMessage.contains(expectedMessage), "exception hasn't been thrown");
     }
 }
