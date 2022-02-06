@@ -1,0 +1,16 @@
+databaseChangeLog:
+   - changeSet:
+      id:  insert-example
+      author:  liquibase-docs
+      changes:
+        -  insert:
+             catalogName:  regions
+             columns:
+               -  column:
+                    name:  code
+                    value: '116'
+               -  column:
+                    name:  name
+                    value: 'Татарстан'
+             dbms:  'h2'
+             tableName:  regions

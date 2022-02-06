@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changeset/create-car-number-table.yaml
+  - include:
+      file: db/changelog/changeset/create-region-table.yaml
+  - include:
+      file: db/changelog/changeset/insert-region.yaml

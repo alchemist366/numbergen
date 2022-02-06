@@ -1,4 +1,6 @@
 HELP.md
+exemple.trace.db
+exemple.mv.db
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

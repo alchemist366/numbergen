@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-car-number
+      author: aisalin
+      changes:
+        - createTable:
+            tableName: car_numbers
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    unique: true
+              - column:
+                  name: number_part
+                  type: integer
+              - column:
+                  name: letter_part
+                  type: varchar
+              - column:
+                  name: region_code
+                  type: integer
+                  constraints:
+                    foreignKeyName: region_fk
+              - column:
+                  name: created
+                  type: timestamp
